@@ -5,43 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: var(--tg-theme-bg-color, #fff); --text: var(--tg-theme-text-color, #000); --btn: var(--tg-theme-button-color, #248bed); }
+        :root { 
+            --bg: var(--tg-theme-bg-color, #fff); 
+            --text: var(--tg-theme-text-color, #000); 
+            --btn: var(--tg-theme-button-color, #248bed); 
+        }
         body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; }
         .search-box { display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ccc; }
-        button { padding: 10px 15px; border-radius: 10px; background: var(--btn); color: #fff; border: none; font-weight: bold; }
-        .track { background: rgba(0,0,0,0.05); padding: 12px; border-radius: 10px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+        input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+        button { padding: 10px 15px; border-radius: 10px; background: var(--btn); color: #fff; border: none; font-weight: bold; cursor: pointer; }
+        button:active { opacity: 0.7; }
     </style>
 </head>
 <body>
     <div class="search-box">
         <input type="text" id="query" placeholder="Название трека...">
-        <button onclick="search()">Найти</button>
+        <button onclick="sendQuery()">Найти</button>
     </div>
-    <div id="results"></div>
+    <div id="results" style="margin-top: 15px; font-size: 14px; color: gray;"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        tg.expand(); // Разворачиваем на весь экран
 
-        async function search() {
-            const q = document.getElementById('query').value;
+        function sendQuery() {
+            const val = document.getElementById('query').value;
             const resDiv = document.getElementById('results');
-            if(!q) return;
+            
+            if(!val) {
+                alert("Введите название песни!");
+                return;
+            }
 
-            resDiv.innerHTML = "🔍 Ищу в YouTube...";
+            resDiv.innerHTML = "🔍 Отправка запроса боту...";
+
+            // Отправляем чистый текст боту (как он и ожидает в Pydroid)
+            tg.sendData(val);
             
-            // Мы отправляем данные боту через специальный метод Telegram
-            tg.sendData(JSON.stringify({action: "search", query: q}));
-            
-            // Закрываем Mini App (бот пришлет результат в чат)
-            // Или можно оставить открытым и ждать ответа через Bot API
+            // Закрываем приложение, чтобы увидеть ответ бота в чате
+            setTimeout(() => {
+                tg.close();
+            }, 500);
         }
-
-        // Слушаем ответ от бота (если настроим бэкенд)
-        window.addEventListener('message', (event) => {
-            // Здесь будет логика отображения треков
-        });
     </script>
 </body>
 </html>
