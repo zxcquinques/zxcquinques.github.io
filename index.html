@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player TMA</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: var(--tg-theme-bg-color, #ffffff);
+            --text: var(--tg-theme-text-color, #000000);
+            --hint: var(--tg-theme-hint-color, #999999);
+            --btn: var(--tg-theme-button-color, #248bed);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+        }
+        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .search-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--hint); background: var(--bg); color: var(--text); }
+        button { background: var(--btn); color: var(--btn-text); border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
+        .track-card { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .player-fixed { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg); border-top: 1px solid var(--hint); padding: 10px; box-sizing: border-box; }
+        audio { width: 100%; height: 35px; }
+    </style>
+</head>
+<body>
+    <h3>Поиск музыки</h3>
+    <div class="search-container">
+        <input type="text" id="query" placeholder="Введите название...">
+        <button onclick="search()">Найти</button>
+    </div>
+
+    <div id="results"></div>
+
+    <div class="player-fixed" id="playerWrap" style="display:none">
+        <div id="nowPlaying" style="font-size: 12px; margin-bottom: 5px;"></div>
+        <audio id="audio" controls></audio>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        async function search() {
+            const q = document.getElementById('query').value;
+            if(!q) return;
+            
+            // Используем Jamendo API для примера (бесплатная легальная музыка)
+            const clientId = '56d3047d'; 
+            const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&limit=10&search=${q}`;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                renderTracks(data.results);
+            } catch (e) {
+                alert("Ошибка поиска");
+            }
+        }
+
+        function renderTracks(tracks) {
+            const container = document.getElementById('results');
+            container.innerHTML = '';
+            tracks.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'track-card';
+                card.innerHTML = `
+                    <div>
+                        <b>${t.name}</b><br>
+                        <small style="color:var(--hint)">${t.artist_name}</small>
+                    </div>
+                    <button onclick="play('${t.audio}', '${t.name}')">▶️</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function play(url, name) {
+            const audio = document.getElementById('audio');
+            document.getElementById('playerWrap').style.display = 'block';
+            document.getElementById('nowPlaying').innerText = "Играет: " + name;
+            audio.src = url;
+            audio.play();
+        }
+    </script>
+</body>
+</html>
